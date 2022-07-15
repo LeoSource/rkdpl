@@ -1,6 +1,6 @@
-# XRobotAlgorithm
+# 机器人运动学动力学以及规划算法库
  
-本项目为清洁机器人项目下机械臂算法开发与验证框架，包含
+本项目为机械臂(串联六轴)算法开发与验证框架，包含
 1. 机械臂轨迹规划库(***robot trajectory planning library***)：`rtpl project`
 2. 机械臂动力学库(***robot dynamics control library***)：`rdcl project`
 3. 测试和验证：`test project`
