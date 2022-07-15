@@ -1,0 +1,27 @@
+# ignore VSCode settings
+.vscode/
+
+# ignore Eigen
+eigen3/
+
+# ignore VS cache folders
+Debug/
+ipch/
+x64/
+test/Debug/
+test/x64/
+.vs/
+
+# ignore VS cache files
+*.db
+*.txt
+*.opendb
+*.sdf
+*.user
+!CMakeLists.txt
+
+# ignore others
+*.autosave
+lib/
+data/
+build/
