@@ -11,15 +11,16 @@
 #include "PlanTools.h"
 #include "ForceControl.h"
 #include "DynIdenTrajPlanner.h"
-#include "RobotParameter\RobotParameter.h"
 #include "JointDataProcessor.h"
 #include "MirrorCleanPlanner.h"
 #ifdef _WIN32
 #include <direct.h>
 #include <io.h>
+#include "RobotParameter\RobotParameter.h"
 #elif __linux__
 #include <sys/stat.h>
 #include <unistd.h>
+#include "RobotParameter/RobotParameter.h"
 #endif
 
 #pragma warning(disable : 4996)
