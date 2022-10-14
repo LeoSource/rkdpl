@@ -51,7 +51,8 @@ enum ID_test
 	fricidentraj = 13,
 	dynidentraj = 14,
 	jdataprocessor = 15,
-	cleanmirror = 16
+	cleanmirror = 16,
+	planner = 17
 };
 
 using PtrTest = void(*)();
@@ -314,7 +315,8 @@ void SimulationLZX()
 	//cout<<aa<<endl;
 	UrRobot rbt = CreatUrRobot();
 	Vector6d q_fdb;
-	q_fdb<<-5.93262, -17.76558, 10.12871, 6.61926, -92.92648, 6.01913;//initial joint position
+	//q_fdb<<-5.93262, -17.76558, 10.12871, 6.61926, -92.92648, 6.01913;//initial joint position
+	q_fdb << 0, 0, 0, 0, -90, 0;
 	q_fdb = q_fdb*D2R;
 	TaskTrajPlanner task_planner(&rbt,q_fdb,g_cycle_time,g_jvmax,g_jamax,g_jjmax, g_cvmax,g_camax,g_cjmax);
 	task_planner._task_completed = true;
@@ -834,6 +836,42 @@ void TestMirrorClean()
 	std::cout<<"down zone:"<<std::endl<<via_posrpy_down<<std::endl;
 }
 
+void TestPlanner()
+{
+	UrRobot rbt = CreatUrRobot();
+	Vector6d q_fdb;
+	q_fdb << 0, 0, 0, 0, -90, 0;
+	q_fdb = q_fdb*D2R;
+	TaskTrajPlanner task_planner(&rbt, q_fdb, g_cycle_time, g_jvmax, g_jamax, g_jjmax, g_cvmax, g_camax, g_cjmax);
+	Vector6d pos_rpy1, pos_rpy2, pos_rpy3, pos_rpy4;
+	pos_rpy1<<0.8, 0, 0.23, -pi, -pi/6, 0;
+	pos_rpy2<<0.3, 0.2, 0.23, -pi, -pi/6, 0;
+	pos_rpy3<<0.8, 0, 0.1, -pi, -pi/6, 0;
+	pos_rpy4<<0.2, 0.6, 0.23, -pi, -pi/6, 0;
+	MatrixXd vpr(6, 4);
+	vpr<<pos_rpy1, pos_rpy2, pos_rpy3, pos_rpy4;
+	task_planner.AddTraj(&vpr, eCartesianSpace, true);
+
+	string file_name = "F:/0_project/rkdpl/mirrortask_jpos1.csv";
+	ofstream ofile;
+	ofile.open(file_name, ios::out|ios::trunc);
+	if (!ofile.is_open())
+	{
+		cout<<"failed to open the file"<<endl;
+	}
+	else
+	{
+		while (!task_planner._task_completed)
+		{
+			Vector6d pos_cmd;
+			task_planner.GenerateCPath(pos_cmd);
+			ofile<<pos_cmd<<endl;
+			//std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+	}
+
+}
+
 int main()
 {
 	map<ID_test, PtrTest> test_map;
@@ -845,7 +883,8 @@ int main()
 		{ fricidentraj,		TestGenerateFricIdenTraj },
 		{ dynidentraj,		TestGenerateDynIdenTraj },
 		{ jdataprocessor,	TestJointDataProcessor},
-		{ cleanmirror,		TestMirrorClean}
+		{ cleanmirror,		TestMirrorClean},
+		{ planner,			TestPlanner}
 	};
 	int test_count = sizeof(config)/sizeof(*config);
 	while (test_count--)
@@ -857,7 +896,7 @@ int main()
 	test_map[simulation] = Simulation;
 #endif
 
-	ID_test test_mode = other;
+	ID_test test_mode = planner;
 	test_map[test_mode]();
 
 	return 0;

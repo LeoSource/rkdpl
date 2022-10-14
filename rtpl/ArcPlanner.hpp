@@ -162,11 +162,14 @@ private:
 		{
 			Vector3d p2p1 = pos1-pos2;
 			Vector3d p2p3 = pos3-pos2;
-			double inc_angle = acos(p2p1.dot(p2p3)/p2p1.norm()/p2p3.norm());
-			MathTools::LimitNum(-1, inc_angle, 1);
-			_theta = acos(1 - 2 * (1 - inc_angle) * (1 + inc_angle));
-			if (inc_angle > 0)
-				_theta = 2 * pi - _theta;
+			double cos_inc_angle = p2p1.dot(p2p3)/p2p1.norm()/p2p3.norm();
+			MathTools::LimitNum(-1, cos_inc_angle, 1);
+			double inc_angle = acos(cos_inc_angle);
+			_theta = pi-inc_angle;
+			//MathTools::LimitNum(-1, inc_angle, 1);
+			//_theta = acos(1 - 2 * (1 - inc_angle) * (1 + inc_angle));
+			//if (inc_angle > 0)
+			//	_theta = 2 * pi - _theta;
 			_radius = p2p1.norm()*tan(0.5*inc_angle);
 			Vector3d pc = 0.5*(pos1+pos3);
 			Vector3d p2pc = pc-pos2;
