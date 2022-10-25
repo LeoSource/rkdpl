@@ -13,7 +13,8 @@
 #include "DynIdenTrajPlanner.h"
 #include "JointDataProcessor.h"
 #include "MirrorCleanPlanner.h"
-#include "LspbPlanner.h"
+#include "LinePlanner.hpp"
+#include "CartesianPlanner.h"
 #ifdef _WIN32
 #include <direct.h>
 #include <io.h>
@@ -102,6 +103,12 @@ void TestLspb()
 			ofile<<avp.pos<<","<<avp.vel<<","<<avp.acc<<endl;
 		}
 	}
+}
+
+void TestLine()
+{
+	Vector6d posrpy0;
+	LinePlanner line()
 }
 
 void TestBSpline()
@@ -905,6 +912,7 @@ int main()
 	{		
 		{ other,			Testother },
 		{ jtrajlspb,		TestLspb},
+		{ ctrajline,		TestLine},
 		{ bspline,			TestBSpline },
 		{ dynamics,			TestRobotDynamics},
 		{ fricidentraj,		TestGenerateFricIdenTraj },
@@ -923,7 +931,7 @@ int main()
 	test_map[simulation] = Simulation;
 #endif
 
-	ID_test test_mode = jtrajlspb;
+	ID_test test_mode = ctrajline;
 	test_map[test_mode]();
 
 	return 0;

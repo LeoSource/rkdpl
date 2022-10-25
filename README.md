@@ -19,7 +19,7 @@
 - 机械臂外力检测
  ## 依赖项
  Eigen库：Windows环境下将源码放置于解决方案同级文件夹，并命名为**eigne3**；
- Linux环境下可直接安装`sudo apt-get install libeigen3-dev`
+ Linux环境下可直接安装：`sudo apt-get install libeigen3-dev`
 
 ## 环境
 VS2015
@@ -72,3 +72,8 @@ models文件夹内包含有机械臂simulink运动学仿真模型，以及相应
 运行环境：Matlab2018b  
 依赖：MQTT in MATLAB--v1.4, Real-Time Pacer for Simulink--v1.0.0.1
 该模型可用于机械臂在线仿真，通过设置mqtt服务端ip地址，并订阅相应topic，该模型能够以给定时间间隔获取机械臂控制器中所反馈的关节数据。该模型采用定步长进行仿真，并保证该步长与机械臂控制器发送的关节数据频率一致。
+
+## TODO List
+1. 任务规划器支持无机器人模型输入
+2. 关节空间轨迹规划增加停止功能
+3. 笛卡尔空间轨迹规划增加位置停止(位置停止可包括直线、圆弧、B样条等)与姿态停止功能
