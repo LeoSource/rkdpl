@@ -13,6 +13,7 @@
 #include "DynIdenTrajPlanner.h"
 #include "JointDataProcessor.h"
 #include "MirrorCleanPlanner.h"
+#include "LspbPlanner.h"
 #ifdef _WIN32
 #include <direct.h>
 #include <io.h>
@@ -81,6 +82,28 @@ UrRobot CreatUrRobot()
 	return rbt;
 }
 
+void TestLspb()
+{
+	//LspbPlanner lspb(-10, 3, 4, 3, Vector2d(-2, 3));
+	LspbPlanner lspb(0, 0.5, 0.5, Vector2d(0.5, 0));
+	string file_name = "F:/0_project/rkdpl/mirrortask_jpos1.csv";
+	ofstream ofile;
+	ofile.open(file_name, ios::out|ios::trunc);
+	if (!ofile.is_open())
+	{
+		cout<<"failed to open the file"<<endl;
+	}
+	else
+	{
+		for (int idx = 0; idx<2000; idx++)
+		{
+			double t = idx*g_cycle_time;
+			auto avp = lspb.GenerateMotion(t);
+			ofile<<avp.pos<<","<<avp.vel<<","<<avp.acc<<endl;
+		}
+	}
+}
+
 void TestBSpline()
 {
 	double tf = 60;
@@ -142,6 +165,8 @@ void TestBSpline()
 
 void Testother()
 {
+
+
 	std::string folder_name = "test_folder";
 #ifdef _WIN32
 	system(("md "+folder_name).c_str());
@@ -878,7 +903,8 @@ int main()
 	map<ID_test, PtrTest> test_map;
 	TestInfo config[] =
 	{		
-		{ other,			Testother },		
+		{ other,			Testother },
+		{ jtrajlspb,		TestLspb},
 		{ bspline,			TestBSpline },
 		{ dynamics,			TestRobotDynamics},
 		{ fricidentraj,		TestGenerateFricIdenTraj },
@@ -897,7 +923,7 @@ int main()
 	test_map[simulation] = Simulation;
 #endif
 
-	ID_test test_mode = planner;
+	ID_test test_mode = jtrajlspb;
 	test_map[test_mode]();
 
 	return 0;

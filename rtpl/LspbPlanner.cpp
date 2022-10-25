@@ -4,21 +4,50 @@
 LspbPlanner::LspbPlanner(Vector2d pos, double max_vel, double max_acc)
 {
 	InitPlanner(pos, max_vel, max_acc);
+	_vel_plan = false;
 }
 
 LspbPlanner::LspbPlanner(Vector2d pos, double max_vel, double max_acc, double tf)
 {
 	InitPlanner(pos, max_vel, max_acc, tf);
+	_vel_plan = false;
 }
 
 LspbPlanner::LspbPlanner(Vector2d pos, double max_vel, double max_acc, Vector2d duration)
 {
 	InitPlanner(pos, max_vel, max_acc, duration);
+	_vel_plan = false;
 }
 
 LspbPlanner::LspbPlanner(Vector2d pos, double max_vel, double max_acc, Vector2d duration, Vector2d vel_con)
 {
 	InitPlanner(pos, max_vel, max_acc, duration, vel_con);
+	_vel_plan = false;
+}
+
+LspbPlanner::LspbPlanner(double pos, double max_vel, double max_acc, Vector2d vel_cons)
+{
+	_dir = MathTools::Sign(vel_cons(1)-vel_cons(0));
+	double vel_h = abs(vel_cons(1)-vel_cons(0));
+	TransformPVA(Vector2d(pos, 0.0), vel_cons, abs(vel_cons(1)), max_acc);
+	_t0 = 0;
+	_ta = vel_h/max_acc;
+	_tf = _ta;
+	_vel_plan = true;
+}
+
+LspbPlanner::LspbPlanner(double pos, double max_vel, double max_acc, double tf, Vector2d vel_cons)
+{
+	_dir = MathTools::Sign(vel_cons(1)-vel_cons(0));
+	double vel_h = abs(vel_cons(1)-vel_cons(0));
+	TransformPVA(Vector2d(pos, 0.0), vel_cons, abs(vel_cons(1)), max_acc);
+	_t0 = 0;
+	if(_amax*tf<vel_h)
+		throw eErrLspb;
+	_ta = tf;
+	_tf = tf;
+	_amax = vel_h/tf;
+	_vel_plan = true;
 }
 
 void LspbPlanner::InitPlanner(Vector2d pos, double max_vel, double max_acc, Vector2d duration, Vector2d vel_con)
@@ -185,53 +214,73 @@ void LspbPlanner::SetVelConstraint(double h, double tf)
 RobotTools::JAVP LspbPlanner::GenerateMotion(double time)
 {
 	double t;
-	t = MathTools::LimitMaxValue<double>(_tf, time);
 	RobotTools::JAVP avp;
-	if (_maxvel_reached)
+	if (_vel_plan)
 	{
+		t = time;
 		if ((t>=_t0) && (t<_t0+_ta))
 		{
-			avp.pos = _q0+_v0*(t-_t0)+0.5*(_vmax-_v0)/_ta*pow(t-_t0, 2);
-			avp.vel = _v0+(_vmax-_v0)/_ta*(t-_t0);
 			avp.acc = _amax;
+			avp.vel = _v0+_amax*(t-_t0);
+			avp.pos = _q0+0.5*(t-_t0)*(_v0+avp.vel);
 		}
-		else if ((t>=_t0+_ta) && (t<(_tf-_td)))
+		else
 		{
-			avp.pos = _q0+0.5*_v0*_ta+_vmax*(t-_t0-0.5*_ta);
-			avp.vel = _vmax;
 			avp.acc = 0;
-		}
-		else if ((t>=(_tf-_td)) && (t<=_tf))
-		{
-			avp.pos = _qf-_vf*(_tf-t)-0.5*(_vmax-_vf)/_td*pow(_tf-t, 2);
-			avp.vel = _vf+(_vmax-_vf)/_td*(_tf-t);
-			avp.acc = -_amax;
+			avp.vel = _vmax;
+			avp.pos = _q0+0.5*_ta*(_v0+_vmax)+_vmax*(t-_t0-_ta);
 		}
 	}
 	else
 	{
-		if (fabs(_tf-_t0)<EPS)
+		t = MathTools::LimitMaxValue<double>(_tf, time);
+		if (_maxvel_reached)
 		{
-			avp.pos = _q0;
-			avp.vel = 0;
-			avp.acc = 0;
-		}
-		else
-		{
-			if ((t>=_t0)&&(t<=_t0+_ta))
+			if ((t>=_t0) && (t<_t0+_ta))
 			{
 				avp.pos = _q0+_v0*(t-_t0)+0.5*(_vmax-_v0)/_ta*pow(t-_t0, 2);
 				avp.vel = _v0+(_vmax-_v0)/_ta*(t-_t0);
 				avp.acc = _amax;
 			}
-			else if ((t>_tf-_td)&&(t<=_tf))
+			else if ((t>=_t0+_ta) && (t<(_tf-_td)))
+			{
+				avp.pos = _q0+0.5*_v0*_ta+_vmax*(t-_t0-0.5*_ta);
+				avp.vel = _vmax;
+				avp.acc = 0;
+			}
+			else if ((t>=(_tf-_td)) && (t<=_tf))
 			{
 				avp.pos = _qf-_vf*(_tf-t)-0.5*(_vmax-_vf)/_td*pow(_tf-t, 2);
 				avp.vel = _vf+(_vmax-_vf)/_td*(_tf-t);
 				avp.acc = -_amax;
 			}
 		}
+		else
+		{
+			if (fabs(_tf-_t0)<EPS)
+			{
+				avp.pos = _q0;
+				avp.vel = 0;
+				avp.acc = 0;
+			}
+			else
+			{
+				if ((t>=_t0)&&(t<=_t0+_ta))
+				{
+					avp.pos = _q0+_v0*(t-_t0)+0.5*(_vmax-_v0)/_ta*pow(t-_t0, 2);
+					avp.vel = _v0+(_vmax-_v0)/_ta*(t-_t0);
+					avp.acc = _amax;
+				}
+				else if ((t>_tf-_td)&&(t<=_tf))
+				{
+					avp.pos = _qf-_vf*(_tf-t)-0.5*(_vmax-_vf)/_td*pow(_tf-t, 2);
+					avp.vel = _vf+(_vmax-_vf)/_td*(_tf-t);
+					avp.acc = -_amax;
+				}
+			}
+		}
 	}
+
 	avp.pos *= _dir;
 	avp.vel *= _dir;
 	avp.acc *= _dir;

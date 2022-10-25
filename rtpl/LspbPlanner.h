@@ -30,6 +30,7 @@ private:
 	double _qf;
 	double _ta;
 	double _td;
+	bool _vel_plan;
 
 public:
 	LspbPlanner() {}
@@ -41,6 +42,9 @@ public:
 	LspbPlanner(Vector2d pos, double max_vel, double max_acc, Vector2d duration);
 
 	LspbPlanner(Vector2d pos, double max_vel, double max_acc, Vector2d duration, Vector2d vel_con);
+
+	LspbPlanner(double pos, double max_vel, double max_acc, Vector2d vel_cons);
+	LspbPlanner(double pos, double max_vel, double max_acc, double tf, Vector2d vel_cons);
 
 	void InitPlanner(Vector2d pos, double max_vel, double max_acc);
 
